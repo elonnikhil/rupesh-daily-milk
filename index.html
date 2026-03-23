@@ -1375,7 +1375,7 @@ function loginCustomer(){
   const cust = D.customers.find(c => c.id === id && c.pwd === pwd);
 
   if(!cust){
-    showToast("Wrong login");
+    alert("Wrong login");
     return;
   }
 
@@ -1384,12 +1384,10 @@ function loginCustomer(){
     custId: cust.id
   };
 
-  localStorage.setItem("loginUser", JSON.stringify(currentUser)); // ✅ ADD
+  localStorage.setItem("loginUser", JSON.stringify(currentUser));
 
-  document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('cust-screen').classList.remove('hidden');
+  showCustomerPortal();
 
-  renderCustPortal();
 }
 
 function loginOwner(){
@@ -1397,7 +1395,7 @@ function loginOwner(){
   const pwd = document.getElementById('owner-pwd').value;
 
   if(pwd !== "1234"){
-    showToast("Wrong password");
+    alert("Wrong password");
     return;
   }
 
@@ -1405,12 +1403,9 @@ function loginOwner(){
     role: "owner"
   };
 
-  localStorage.setItem("loginUser", JSON.stringify(currentUser)); // ✅ ADD
+  localStorage.setItem("loginUser", JSON.stringify(currentUser));
 
-  document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('app').classList.remove('hidden');
-
-  renderHome();
+  showApp();
 }
 
 function enterApp(){
