@@ -3118,25 +3118,44 @@ function regFinish(){
 // ─────────────────────────────────────────────────────
 window.addEventListener("load", function(){
 
-  const saved = localStorage.getItem("loginUser");
+  try{
 
-  if(!saved) return;
+    const saved = localStorage.getItem("loginUser");
 
-  currentUser = JSON.parse(saved);
+    if(!saved) return;
 
-  document.getElementById('login-screen').classList.add('hidden');
+    currentUser = JSON.parse(saved);
 
-  if(currentUser.role === "owner"){
+    const loginScreen = document.getElementById("login-screen");
+    const app = document.getElementById("app");
+    const cust = document.getElementById("cust-screen");
 
-    document.getElementById('app').classList.remove('hidden');
-    renderHome();
+    if(loginScreen) loginScreen.classList.add("hidden");
 
-  }
+    if(currentUser.role === "owner"){
 
-  if(currentUser.role === "customer"){
+      if(app) app.classList.remove("hidden");
 
-    document.getElementById('cust-screen').classList.remove('hidden');
-    renderCustPortal();
+      if(typeof renderHome === "function"){
+        renderHome();
+      }
+
+    }
+
+    if(currentUser.role === "customer"){
+
+      if(cust) cust.classList.remove("hidden");
+
+      if(typeof renderCustPortal === "function"){
+        renderCustPortal();
+      }
+
+    }
+
+  }catch(e){
+
+    console.log("Auto login error", e);
+    localStorage.removeItem("loginUser");
 
   }
 
