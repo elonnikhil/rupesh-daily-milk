@@ -1368,33 +1368,49 @@ function switchRole(role){
 }
 
 function loginCustomer(){
-  hideLerr('err-cust');
-  const phone = document.getElementById('li-phone').value.trim();
-  const pass  = document.getElementById('li-pass').value;
-  const cust  = D.customers.find(c=>c.phone===phone);
-  if(!cust || cust.pwd !== pass){
-    showLerr('err-cust', 'Number not found or wrong password');
+
+  const id = document.getElementById('cust-id').value;
+  const pwd = document.getElementById('cust-pwd').value;
+
+  const cust = D.customers.find(c => c.id === id && c.pwd === pwd);
+
+  if(!cust){
+    showToast("Wrong login");
     return;
   }
-  // Block access until owner approves
-  if(cust.status === 'pending'){
-    showLerr('err-cust', 'Your account is pending approval by Rupesh. Please wait!');
-    return;
-  }
-  currentUser = {role:'customer', custId:cust.id, name:cust.name};
-  enterApp();
+
+  currentUser = {
+    role: "customer",
+    custId: cust.id
+  };
+
+  localStorage.setItem("loginUser", JSON.stringify(currentUser)); // ✅ ADD
+
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('cust-screen').classList.remove('hidden');
+
+  renderCustPortal();
 }
 
 function loginOwner(){
-  hideLerr('err-owner');
-  const user = document.getElementById('li-ouser').value.trim();
-  const pass = document.getElementById('li-opass').value;
-  if(user!==OWNER_USER || pass!==OWNER_PASS){
-    showLerr('err-owner', 'Wrong username or password');
+
+  const pwd = document.getElementById('owner-pwd').value;
+
+  if(pwd !== "1234"){
+    showToast("Wrong password");
     return;
   }
-  currentUser = {role:'owner', name:'Rupesh'};
-  enterApp();
+
+  currentUser = {
+    role: "owner"
+  };
+
+  localStorage.setItem("loginUser", JSON.stringify(currentUser)); // ✅ ADD
+
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+
+  renderHome();
 }
 
 function enterApp(){
@@ -1433,17 +1449,12 @@ function enterApp(){
 }
 
 function logout(){
+
+  localStorage.removeItem("loginUser"); // ✅ remove saved login
+
   currentUser = null;
-  custCart    = {};
-  clearInterval(_custOrdersPollTimer);
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('main-nav').style.display = '';
-  document.getElementById('cust-portal').style.display = 'none';
-  document.getElementById('login-screen').classList.remove('hidden');
-  document.getElementById('li-pass').value  = '';
-  document.getElementById('li-opass').value = '';
-  hideLerr('err-cust'); hideLerr('err-owner');
-  switchRole('customer');
+
+  location.reload();
 }
 
 function showTab(id, btn){
@@ -3105,7 +3116,31 @@ function regFinish(){
 // ─────────────────────────────────────────────────────
 // BOOT — connect Firebase and start app
 // ─────────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', initApp);
+window.addEventListener("load", function(){
+
+  const saved = localStorage.getItem("loginUser");
+
+  if(!saved) return;
+
+  currentUser = JSON.parse(saved);
+
+  document.getElementById('login-screen').classList.add('hidden');
+
+  if(currentUser.role === "owner"){
+
+    document.getElementById('app').classList.remove('hidden');
+    renderHome();
+
+  }
+
+  if(currentUser.role === "customer"){
+
+    document.getElementById('cust-screen').classList.remove('hidden');
+    renderCustPortal();
+
+  }
+
+});
 </script>
 </body>
 </html>
