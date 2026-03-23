@@ -3116,51 +3116,7 @@ function regFinish(){
 // ─────────────────────────────────────────────────────
 // BOOT — connect Firebase and start app
 // ─────────────────────────────────────────────────────
-window.addEventListener("load", function(){
-
-  try{
-
-    const saved = localStorage.getItem("loginUser");
-
-    if(!saved) return;
-
-    currentUser = JSON.parse(saved);
-
-    const loginScreen = document.getElementById("login-screen");
-    const app = document.getElementById("app");
-    const cust = document.getElementById("cust-screen");
-
-    if(loginScreen) loginScreen.classList.add("hidden");
-
-    if(currentUser.role === "owner"){
-
-      if(app) app.classList.remove("hidden");
-
-      if(typeof renderHome === "function"){
-        renderHome();
-      }
-
-    }
-
-    if(currentUser.role === "customer"){
-
-      if(cust) cust.classList.remove("hidden");
-
-      if(typeof renderCustPortal === "function"){
-        renderCustPortal();
-      }
-
-    }
-
-  }catch(e){
-
-    console.log(e);
-    localStorage.removeItem("loginUser");
-
-  }
-
-});
-
+window.addEventListener('DOMContentLoaded', initApp);
 </script>
 </body>
 </html>
