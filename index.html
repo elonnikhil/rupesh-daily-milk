@@ -3112,6 +3112,32 @@ function regFinish(){
 // BOOT — connect Firebase and start app
 // ─────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', initApp);
+
+// ─────────────────────────────────────────────────────
+// AUTO-LOGIN — restore session from localStorage
+// ─────────────────────────────────────────────────────
+window.addEventListener("load", function(){
+
+  try{
+
+    const saved = localStorage.getItem("loginUser");
+
+    if(!saved) return;
+
+    currentUser = JSON.parse(saved);
+
+    if(!currentUser) return;
+
+    enterApp();   // ✅ IMPORTANT (your system uses this)
+
+  }catch(e){
+
+    console.log("Auto login error", e);
+    localStorage.removeItem("loginUser");
+
+  }
+
+});
 </script>
 </body>
 </html>
