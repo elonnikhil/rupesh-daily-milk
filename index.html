@@ -8,7 +8,6 @@
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
 /* ═══════════════════════════════════════
    DESIGN TOKENS
@@ -1208,22 +1207,6 @@ function initApp(){
 
   try{
     firebase.initializeApp(FIREBASE_CONFIG);
-     const auth = firebase.auth();
-
-auth.onAuthStateChanged((user) => {
-  if (user) {
-    console.log("Already logged in");
-
-    document.getElementById("login-screen").classList.add("hidden");
-    document.getElementById("app").classList.add("show");
-
-  } else {
-    console.log("Not logged in");
-
-    document.getElementById("login-screen").classList.remove("hidden");
-    document.getElementById("app").classList.remove("show");
-  }
-});
     _db     = firebase.firestore();
     _docRef = _db.collection('rdm').doc('data');
 
@@ -1384,25 +1367,15 @@ function switchRole(role){
   document.getElementById('rb-owner').classList.toggle('active', role==='owner');
 }
 
-function loginCustomer() {
-  const phone = document.getElementById('lc-phone').value.trim();
-  const pass  = document.getElementById('lc-pass').value.trim();
-  const err   = document.getElementById('lc-err');
-
-  const c = D.customers.find(x => x.phone === phone && x.pass === pass);
-  if (c) {
-    currentUser = c;
-    // SAVE TO BROWSER
-    localStorage.setItem('rup_uid', c.id);
-    localStorage.setItem('rup_role', 'customer');
-    showApp('customer');
-  } else {
-    err.innerText = "❌ Invalid Phone or Password";
-    err.classList.add('show');
-    document.querySelector('.lcard').classList.add('shake');
-    setTimeout(() => document.querySelector('.lcard').classList.remove('shake'), 400);
+function loginCustomer(){
+  hideLerr('err-cust');
+  const phone = document.getElementById('li-phone').value.trim();
+  const pass  = document.getElementById('li-pass').value;
+  const cust  = D.customers.find(c=>c.phone===phone);
+  if(!cust || cust.pwd !== pass){
+    showLerr('err-cust', 'Number not found or wrong password');
+    return;
   }
-}
   // Block access until owner approves
   if(cust.status === 'pending'){
     showLerr('err-cust', 'Your account is pending approval by Rupesh. Please wait!');
@@ -1412,22 +1385,18 @@ function loginCustomer() {
   enterApp();
 }
 
-function loginOwner() {
-  const pass = document.getElementById('lo-pass').value.trim();
-  const err  = document.getElementById('lo-err');
-
-  if (pass === D.owner.pass) {
-    // SAVE TO BROWSER
-    localStorage.setItem('rup_uid', 'owner');
-    localStorage.setItem('rup_role', 'owner');
-    showApp('owner');
-  } else {
-    err.innerText = "❌ Incorrect Password";
-    err.classList.add('show');
-    document.querySelector('.lcard').classList.add('shake');
-    setTimeout(() => document.querySelector('.lcard').classList.remove('shake'), 400);
+function loginOwner(){
+  hideLerr('err-owner');
+  const user = document.getElementById('li-ouser').value.trim();
+  const pass = document.getElementById('li-opass').value;
+  if(user!==OWNER_USER || pass!==OWNER_PASS){
+    showLerr('err-owner', 'Wrong username or password');
+    return;
   }
+  currentUser = {role:'owner', name:'Rupesh'};
+  enterApp();
 }
+
 function enterApp(){
   document.getElementById('login-screen').classList.add('hidden');
   const isOwner = currentUser.role === 'owner';
@@ -1463,13 +1432,18 @@ function enterApp(){
   }
 }
 
-function logout() {
-  if (confirm("Logout from Rupesh Daily Milk?")) {
-    // CLEAR SAVED DATA
-    localStorage.removeItem('rup_uid');
-    localStorage.removeItem('rup_role');
-    location.reload();
-  }
+function logout(){
+  currentUser = null;
+  custCart    = {};
+  clearInterval(_custOrdersPollTimer);
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('main-nav').style.display = '';
+  document.getElementById('cust-portal').style.display = 'none';
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('li-pass').value  = '';
+  document.getElementById('li-opass').value = '';
+  hideLerr('err-cust'); hideLerr('err-owner');
+  switchRole('customer');
 }
 
 function showTab(id, btn){
@@ -3131,40 +3105,7 @@ function regFinish(){
 // ─────────────────────────────────────────────────────
 // BOOT — connect Firebase and start app
 // ─────────────────────────────────────────────────────
-function initApp() {
-  db.collection('app').doc('daily-milk').onSnapshot(doc => {
-    D = doc.data();
-    hideFbLoading(); // Custom function from your code
-    
-    // Check browser storage for a returning user
-    const savedId = localStorage.getItem('rup_uid');
-    const savedRole = localStorage.getItem('rup_role');
-
-    if (savedId && savedRole) {
-      if (savedRole === 'owner') {
-        showApp('owner');
-      } else {
-        const user = D.customers.find(c => c.id === savedId);
-        if (user) {
-          currentUser = user;
-          showApp('customer');
-        } else {
-          // User not found in database anymore
-          document.getElementById('login-screen').classList.remove('hidden');
-        }
-      }
-    } else {
-      // No saved user, show login screen
-      document.getElementById('login-screen').classList.remove('hidden');
-    }
-  }, err => {
-    console.error("Firebase Error:", err);
-    showFbError();
-  });
-}
-
-// Start the app
-initApp();
+window.addEventListener('DOMContentLoaded', initApp);
 </script>
 </body>
 </html>
